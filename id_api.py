@@ -29,7 +29,8 @@ defaults = {
     'REDIS_URL': None,
     'REDISTOGO_URL': None,
     'SENTRY_DSN': None,
-    'LOG_LEVEL': 'INFO'
+    'LOG_LEVEL': 'INFO',
+    'DISABLE_SSL_VERIFY': None,
 }
 
 # Cache values retrieved from sources for this many seconds
@@ -112,7 +113,8 @@ def get_domain(address):
     Uses a ripple-rest server to query the account information.
     """
     response = requests.get("{host}/v1/accounts/{address}/settings".format(
-        address=address, host=config['RIPPLE_REST']))
+            address=address, host=config['RIPPLE_REST']),
+        verify=not bool(config['DISABLE_SSL_VERIFY']))
     if response.status_code != 200:
         log.debug("ripple-rest http request failed: %s" % response.status_code)
         return
