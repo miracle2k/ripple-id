@@ -24,11 +24,11 @@ import rippletxt
 
 log = logbook.Logger(__name__)
 
-
 defaults = {
     'RIPPLE_REST': 'https://rippled.undulous.com',
     'REDIS_URL': None,
-    'SENTRY_DSN': None
+    'SENTRY_DSN': None,
+    'LOG_LEVEL': 'INFO'
 }
 
 # Cache values retrieved from sources for this many seconds
@@ -57,6 +57,8 @@ config = defaults.copy()
 for name in defaults:
     config[name] = os.environ.get(name, config[name])
 
+
+log.level = getattr(logbook, config['LOG_LEVEL'] or 'INFO')
 
 # Set up error reporting
 if config['SENTRY_DSN']:
