@@ -27,7 +27,8 @@ log = logbook.Logger(__name__)
 
 defaults = {
     'RIPPLE_REST': 'https://rippled.undulous.com',
-    'REDIS_URL': ''
+    'REDIS_URL': None,
+    'SENTRY_DSN': None
 }
 
 # Cache values retrieved from sources for this many seconds
@@ -55,6 +56,12 @@ app = Flask(__name__)
 config = defaults.copy()
 for name in defaults:
     config[name] = os.environ.get(name, config[name])
+
+
+# Set up error reporting
+if config['SENTRY_DSN']:
+    from raven.contrib.flask import Sentry
+    sentry = Sentry(app, dsn=config['SENTRY_DSN'])
 
 # Connect to a cache
 if config['REDIS_URL']:
