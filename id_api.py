@@ -58,7 +58,13 @@ for name in defaults:
     config[name] = os.environ.get(name, config[name])
 
 
+# Setup logging
 log.level = getattr(logbook, config['LOG_LEVEL'] or 'INFO')
+handler = logbook.StderrHandler()
+handler.format_string = (
+    u'[{record.time:%Y-%m-%d %H:%M}] '
+    u'{record.level_name}: {record.extra[address]}: {record.message}')
+handler.push_application()
 
 # Set up error reporting
 if config['SENTRY_DSN']:
@@ -166,8 +172,8 @@ def get_any_name(address, timeout=2):
 
     result = {}
     gevent.joinall([
-        gevent.spawn(cachify(get_domain, result, 'domain'), address),
-        gevent.spawn(cachify(get_nickname, result, 'nickname'), address)
+        run_address_resolver(cachify(get_domain, result, 'domain'), address),
+        run_address_resolver(cachify(get_nickname, result, 'nickname'), address)
     ], timeout=timeout)
 
     # pick the best result
@@ -178,6 +184,16 @@ def get_any_name(address, timeout=2):
 
 
 tuplify = lambda v: v if isinstance(v, tuple) else (v,)
+
+
+def run_address_resolver(func, address):
+    """Run an address resolver in a greenlet."""
+    def inject_address(record):
+        record.extra['address'] = address
+    def wrapped(address):
+        with logbook.Processor(inject_address).threadbound():
+            return func(address)
+    return gevent.spawn(wrapped, address)
 
 
 def cachify(func, channel, key):
@@ -224,4 +240,3 @@ def cachify(func, channel, key):
 if __name__ == '__main__':
     app.debug = True
     app.run()
-    #get_any_name('r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5')
