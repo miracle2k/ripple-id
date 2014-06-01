@@ -27,6 +27,7 @@ log = logbook.Logger(__name__)
 defaults = {
     'RIPPLE_REST': 'https://rippled.undulous.com',
     'REDIS_URL': None,
+    'REDISTOGO_URL': None,
     'SENTRY_DSN': None,
     'LOG_LEVEL': 'INFO'
 }
@@ -72,8 +73,9 @@ if config['SENTRY_DSN']:
     sentry = Sentry(app, dsn=config['SENTRY_DSN'])
 
 # Connect to a cache
-if config['REDIS_URL']:
-    redis_cache = redis.StrictRedis.from_url(config['REDIS_URL'])
+redis_url = config['REDIS_URL'] or config['REDISTOGO_URL']
+if redis_url:
+    redis_cache = redis.StrictRedis.from_url(redis_url)
 else:
     print('Warning: Running without redis cache, REDIS_URL missing')
     class FakeRedis(object):
