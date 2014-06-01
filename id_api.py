@@ -89,8 +89,10 @@ else:
 @app.route('/')
 def help():
     return Response("""
+Info: https://github.com/miracle2k/ripple-id
+
 {host}<address>[?timeout=<int>]
-""".format(host=request.host_url), mimetype='text/plain')
+""".format(host=request.host_url).strip(), mimetype='text/plain')
 
 
 @app.route('/<address>')
