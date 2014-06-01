@@ -35,11 +35,11 @@ You may use the instance that is running at [id.wasipaid.com](id.wasipaid.com).
 
 For example:
 
-   [http://id.wasipaid.com/r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5]()
+   [http://id.wasipaid.com/r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5](http://id.wasipaid.com/r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5)
 
 You may specify a timeout to ensure a quick response:
 
-   [http://id.wasipaid.com/r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5?timeout=0.4]()
+   [http://id.wasipaid.com/r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5?timeout=0.4](http://id.wasipaid.com/r3THXKcb5KnJbD5M74kRdMfpoMY1ik8dQ5?timeout=0.4)
 
 If a timeout is used, you will get the best response available at the time. Using
 this approach, I recommend that you do not cache the values you receive locally,
