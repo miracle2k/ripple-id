@@ -153,7 +153,11 @@ def get_domain(address):
         # ripple.txt does not advertise this account
         return "", ""
 
-    return domain, cfg.get('x-name', '')
+    name = ""
+    if cfg.get('x-name'):
+        name = cfg.get('x-name')[0]
+
+    return domain, name
 
 
 def get_nickname(address):
@@ -178,7 +182,7 @@ def get_any_name(address, timeout=2):
 
     result = {}
     gevent.joinall([
-        run_address_resolver(cachify(get_domain, result, 'domain'), address),
+        run_address_resolver(cachify(get_domain, result, ('domain', 'name')), address),
         run_address_resolver(cachify(get_nickname, result, 'nickname'), address)
     ], timeout=timeout)
 
