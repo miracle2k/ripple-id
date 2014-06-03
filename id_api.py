@@ -99,7 +99,7 @@ Info: https://github.com/miracle2k/ripple-id
 @app.route('/<address>')
 def api_any_name(address):
     try:
-        timeout = min(float(request.values.get('timeout', 2.0)), 10)
+        timeout = min(float(request.values.get('timeout', 10.0)), 10)
     except ValueError:
         raise BadRequest()
     res = get_any_name(address, timeout)
