@@ -7,21 +7,21 @@ Given a Ripple address, return a human-readable identifier, if at all possible.
 
 For this, it will attempt to consult a number of different sources:
 
-1. A manually maintained, internal map.
+1. *A manually maintained, internal map.*
 
    This should ideally be avoided, but might be useful for well-known
    addresses that still are not identifyable by other means.
 
-2. A registered ripple name.
+2. *A registered ripple name.*
 
-   For this, query the server at id.ripple.com.
+   For this, query the servers at id.ripple.com and id.ripplefederation.org.
 
-3. Use the domain claimed by the account.
+3. *Use the domain claimed by the account.*
 
    The ripple.txt file on the domain is reverse-checked to make sure it
    advertises the Ripple address.
 
-4. Look for a custom [x-name] key in the domain's ripple.txt that may
+4. Look for *a custom [x-name] key* in the domain's ripple.txt that may
    optionally be used instead of the domain name itself.
 
 The sources are given preference in this order:  local mapping, x-name key,
