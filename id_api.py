@@ -160,17 +160,25 @@ def get_domain(address):
     return domain, name
 
 
-def get_nickname(address):
+RIPPLELABS_IDSRV = ('https://id.ripple.com/v1/', '~', '')
+RIPPLE_FEDERATION_IDSRV = ('https://id.ripplefederation.org/v1/', '', '@ripplefederation.org')
+
+def get_nickname(address, api):
     """Check if there is a nickname associated with this address,
-    by checking id.ripple.com.
+    by checking id.ripple.com, or the API of a different client
     """
-    response = requests.get("https://id.ripple.com/v1/user/{address}".format(
-        address=address))
+    url, prefix, suffix = api
+    response = requests.get("{api}user/{address}".format(
+        api=url,
+        address=address, verify=False))
     if response.status_code != 200:
+        log.info('Error from id server: %s, %s' % (response.status_code, response.text))
         return None
     data = response.json()
     nickname = data.get('username', '')
-    return '~%s' % nickname if nickname else ''
+    if nickname:
+        nickname = '{0}{1}{2}'.format(prefix, nickname, suffix)
+    return nickname
 
 
 def get_any_name(address, timeout=2):
@@ -181,13 +189,17 @@ def get_any_name(address, timeout=2):
         return ADDRESS_DB[address]
 
     result = {}
+    run = lambda f, keys, *a: run_address_resolver(cachify(f, result, keys), *a)
     gevent.joinall([
-        run_address_resolver(cachify(get_domain, result, ('domain', 'name')), address),
-        run_address_resolver(cachify(get_nickname, result, 'nickname'), address)
+        run(get_domain, ('domain', 'name'), address),
+        run(get_nickname, 'nickname{ripplelabs}', address, RIPPLELABS_IDSRV),
+        run(get_nickname, 'nickname{ripplefederation}', address, RIPPLE_FEDERATION_IDSRV),
     ], timeout=timeout)
 
     # pick the best result
-    for key in ['name', 'nickname', 'domain']:
+    for key in ['name',
+                'nickname{ripplelabs}', 'nickname{ripplefederation}',
+                'domain']:
         if result.get(key):
             return result[key]
     return ''
@@ -196,14 +208,14 @@ def get_any_name(address, timeout=2):
 tuplify = lambda v: v if isinstance(v, tuple) else (v,)
 
 
-def run_address_resolver(func, address):
+def run_address_resolver(func, address, *args):
     """Run an address resolver in a greenlet."""
     def inject_address(record):
         record.extra['address'] = address
-    def wrapped(address):
+    def wrapped(address, *a):
         with logbook.Processor(inject_address).threadbound():
-            return func(address)
-    return gevent.spawn(wrapped, address)
+            return func(address, *a)
+    return gevent.spawn(wrapped, address, *args)
 
 
 def cachify(func, channel, key):
@@ -221,7 +233,7 @@ def cachify(func, channel, key):
     be a tuple for htis case.
     """
     key = tuplify(key)
-    def wrapped(address):
+    def wrapped(address, *args):
         # Check the cache first
         cached_result = {}
         for k in key:
@@ -234,7 +246,7 @@ def cachify(func, channel, key):
             return
 
         # Run the function
-        result = func(address)
+        result = func(address, *args)
         log.debug('func result for %s: %s' % (key, result))
         if result is None:
             # None indicates no values available right now,
